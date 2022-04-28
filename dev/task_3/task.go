@@ -30,13 +30,41 @@ func main() {
 	flag.BoolVar(&u, "u", false, "не выводить повторяющиеся строки")
 	flag.Parse()
 
-	fileName = "/Users/moratherest/Projects/wb_l2/dev/task_3/Text2.txt"
 	file := OpenFile(fileName)
 
 	arr := strings.Split(file, k)
-	fmt.Println(k, n, r, u)
+	LowerCase(arr)
+
+	if u {
+		arr = RemoveDuplicate(arr)
+	}
 	arr = Sort(arr, 0, len(arr)-1)
+
 	fmt.Println(arr, cap(arr))
+}
+
+//RemoveDuplicate удаляет повторяющиеся строки
+func RemoveDuplicate(arr []string) []string {
+	checkedChar := make(map[string]int)
+	for i := 0; i < len(arr); i++ {
+		_, ok := checkedChar[arr[i]]
+		if ok {
+			if i != len(arr) {
+				arr = append(arr[:i], arr[i+1:]...)
+				i--
+			}
+		}
+
+		checkedChar[arr[i]] = i
+	}
+	return arr
+}
+
+//LowerCase приводит строки к нижнему регистру
+func LowerCase(arr []string) {
+	for i := range arr {
+		arr[i] = strings.ToLower(arr[i])
+	}
 }
 
 func OpenFile(FileName string) string {
@@ -70,10 +98,10 @@ func quickSort(arr []string, start, end int) []string {
 	arr, left, right := parti(arr, start, end)
 
 	if start < right {
-		quickSort(arr, start, right)
+		arr = quickSort(arr, start, right)
 	}
 	if left < end {
-		quickSort(arr, left, end)
+		arr = quickSort(arr, left, end)
 	}
 
 	return arr
@@ -83,10 +111,10 @@ func parti(arr []string, start, end int) ([]string, int, int) {
 	var mid int
 	var midIsDigit bool
 	if n {
-		mid, midIsDigit = getNum(arr[(start + end) / 2])
+		mid, midIsDigit = getNum(arr[(start+end)/2])
 		for !midIsDigit {
-			arr = RemoveIfIsNotDigit(arr,(start + end) / 2)
-			mid, midIsDigit = getNum(arr[(start + end) / 2])
+			arr = RemoveIfIsNotDigit(arr, (start+end)/2)
+			mid, midIsDigit = getNum(arr[(start+end)/2])
 		}
 	} else {
 		mid = (start + end) / 2
@@ -103,15 +131,15 @@ func parti(arr []string, start, end int) ([]string, int, int) {
 		// TODO: вынести reverse в отдельную функцию
 		if n {
 			arr, markerLeft, markerRight = getMarkerForNum(arr, markerLeft, markerRight, mid)
-		}
+		} else {
+			var compareLeft, compareRight = 1, -1
+			if !r {
+				compareLeft, compareRight = -1, 1
+			}
 
-		var compareLeft, compareRight int = 1, -1
-		if !r {
-			compareLeft, compareRight = -1, 1
-		}
-		if !n {
 			markerLeft, markerRight = getMarkerForString(arr, markerLeft, markerRight, mid, compareLeft, compareRight)
 		}
+
 		fmt.Println("marker", markerLeft, markerRight)
 		if markerLeft <= markerRight {
 			temp := arr[markerLeft]
@@ -125,6 +153,7 @@ func parti(arr []string, start, end int) ([]string, int, int) {
 	return arr, markerLeft, markerRight
 }
 
+//getMarkerForString выдает индекс для элементов
 func getMarkerForString(arr []string, left, right, mid, compareForLeft, compareForRight int) (int, int) {
 	for strings.Compare(arr[left], arr[mid]) == compareForLeft {
 		left++
@@ -136,37 +165,8 @@ func getMarkerForString(arr []string, left, right, mid, compareForLeft, compareF
 	return left, right
 }
 
-
+//getMarkerForNum Выдает индекс для элементов, перед которыми стоят числа
 func getMarkerForNum(arr []string, left, right, mid int) ([]string, int, int) {
-	//haveNum := false
-	//for i := mid; i < len(arr); i++ {
-	//	_, errMidRight := strconv.Atoi(string(arr[mid][i]))
-	//	if errMidRight == nil {
-	//		var num string
-	//		for j := 0; j < len(arr[mid]); j++ {
-	//			if 48 <= arr[mid][j] && arr[mid][j] <= 57 {
-	//				num += string(arr[mid][j])
-	//			} else {
-	//				break
-	//			}
-	//		}
-	//		mid, _ = strconv.Atoi(num)
-	//		haveNum = true
-	//		break
-	//	}
-	//
-	//	if i == len(arr)-1 {
-	//		for j := mid; j >= 0; j-- {
-	//			_, errMidLeft := strconv.Atoi(string(arr[mid][j]))
-	//			if errMidLeft == nil {
-	//				haveNum = true
-	//				mid = j
-	//				break
-	//			}
-	//		}
-	//	}
-	//}
-
 	fmt.Println(mid, arr)
 	//if !haveNum {
 	//	fmt.Println("в списке нет цифр")
@@ -177,6 +177,7 @@ func getMarkerForNum(arr []string, left, right, mid int) ([]string, int, int) {
 	rightNum, rightIsDigit := getNum(arr[right])
 
 	for leftNum < mid {
+		//удаляем элемент если он не начинается с числа
 		if !leftIsDigit {
 			arr = RemoveIfIsNotDigit(arr, left)
 			leftNum, leftIsDigit = getNum(arr[left])
@@ -187,7 +188,7 @@ func getMarkerForNum(arr []string, left, right, mid int) ([]string, int, int) {
 	}
 	for rightNum > mid || !rightIsDigit {
 		if !rightIsDigit {
-			if right == len(arr) -1 && right > 1 {
+			if right == len(arr)-1 && right > 1 {
 				right--
 			}
 			arr = RemoveIfIsNotDigit(arr, right)
@@ -224,6 +225,6 @@ func getNum(str string) (int, bool) {
 func RemoveIfIsNotDigit(arr []string, index int) []string {
 	unsuitable = append(unsuitable, arr[index])
 	copy(arr[index:], arr[index+1:])
-	arr[len(arr) - 1] = ""
+	arr[len(arr)-1] = ""
 	return arr
 }
