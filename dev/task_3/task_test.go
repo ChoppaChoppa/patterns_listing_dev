@@ -57,3 +57,31 @@ func TestLowerCase(t *testing.T) {
 		})
 	}
 }
+
+func TestRemoveSpacesAtTheEnd(t *testing.T) {
+	type args struct {
+		arr []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "RemoveSpaces_test_1",
+			args: args{
+				arr: []string{"asdfe", "rigjoej", "asodijo   ", "asdasd ", "asodiaosi j       "},
+			},
+			want: []string{"asdfe", "rigjoej", "asodijo", "asdasd", "asodiaosi j"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RemoveSpacesAtTheEnd(tt.args.arr)
+
+			if got := tt.args.arr; !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("LowerCase() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

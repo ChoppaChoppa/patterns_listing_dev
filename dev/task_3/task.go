@@ -15,6 +15,7 @@ var (
 
 	fileName string
 	k        string
+	M        bool
 	n        bool
 	r        bool
 	u        bool
@@ -28,12 +29,17 @@ func main() {
 	flag.BoolVar(&n, "n", false, "сортировать по числовому значению")
 	flag.BoolVar(&r, "r", false, "сортировать в обратном порядке")
 	flag.BoolVar(&u, "u", false, "не выводить повторяющиеся строки")
+	flag.BoolVar(&M, "M", false, "")
 	flag.Parse()
 
 	file := OpenFile(fileName)
 
 	arr := strings.Split(file, k)
-	LowerCase(arr)
+	//LowerCase(arr)
+
+	if M {
+		RemoveSpacesAtTheEnd(arr)
+	}
 
 	if u {
 		arr = RemoveDuplicate(arr)
@@ -41,6 +47,16 @@ func main() {
 	arr = Sort(arr, 0, len(arr)-1)
 
 	fmt.Println(arr, cap(arr))
+}
+
+func RemoveSpacesAtTheEnd(arr []string) {
+	for i, v := range arr {
+		var j int
+		for j = len(v) - 1; j > 0 && string(v[j]) == " "; j-- {
+		}
+		newString := v[:j+1]
+		arr[i] = newString
+	}
 }
 
 //RemoveDuplicate удаляет повторяющиеся строки

@@ -43,7 +43,7 @@ func main() {
 	Users = make(map[int]User)
 	Route()
 
-	log.Fatal(http.ListenAndServe(":3030", nil))
+	log.Fatal(http.ListenAndServe(":3030", Middleware(http.DefaultServeMux.ServeHTTP)))
 }
 
 func Route() {
@@ -72,7 +72,7 @@ func Route() {
 			HttpError(w, errCreate, errCreate.Error(), "bad request", http.StatusBadRequest)
 			return
 		}
-		fmt.Println(user)
+
 		Users[user.ID] = user
 
 		result := CustomResponse{Result: Users}
@@ -105,15 +105,18 @@ func Route() {
 				"bad request", http.StatusBadRequest)
 			return
 		}
-		fmt.Println("3")
+
 		user := Users[data.UserID]
 
 		if _, ok := user.Calendar[t]; !ok {
 			HttpError(w, nil, "", "bad request", http.StatusBadRequest)
 			return
 		}
-		fmt.Println("4")
-		UpdateAction(&user, data)
+
+		if errUpdate := UpdateAction(&user, data); errUpdate != nil {
+			HttpError(w, nil, "", "bad request", http.StatusBadRequest)
+			return
+		}
 
 		resp := CustomResponse{
 			Result: user,
@@ -300,7 +303,7 @@ func CreateAction(data Data) (User, error) {
 		ID:       data.UserID,
 		Calendar: Users[data.UserID].Calendar,
 	}
-	fmt.Println(user)
+
 	return user, nil
 }
 
@@ -349,6 +352,13 @@ func (d *Data) parseDate() (time.Time, error) {
 	}
 
 	return t, nil
+}
+
+func Middleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("From: %v, Method: %v", r.RemoteAddr, r.Method)
+		next(w, r)
+	}
 }
 
 func parseUrl(value url.Values) (int, time.Time, error) {
